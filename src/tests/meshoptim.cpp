@@ -21,6 +21,13 @@ SCENARIO("Constructing a mesh data structure") {
       THEN("The length of the data of the mesh does not change") {
         REQUIRE(count1 == count2);
       }
+
+      WHEN("Getting vertex") {
+        std::string getv1(meshoptim::get_vertex(themesh, 0));
+        THEN("Correct vertex data should be returned") {
+          REQUIRE(getv1.substr(0, 3) == "1.1");
+        }
+      }
     }
 
     WHEN("Not having duplicated") {
