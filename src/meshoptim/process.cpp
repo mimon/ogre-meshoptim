@@ -22,10 +22,7 @@ namespace meshoptim
 
     for (int i = 0; i < element_count; ++i)
     {
-      auto elm_start = subject.begin() + i * sizeof(element);
-      auto elm_end = elm_start + sizeof(element);
-      std::string_view element (&(*elm_start), sizeof(element));
-      ;
+      std::string_view element = get_vertex(subject, i);
       hashes[i] = hash_fn(element);
     }
 
@@ -75,5 +72,11 @@ namespace meshoptim
       auto replace_count = pos + size_of_coordinate;
       mesh.replace(pos, replace_count, input[i].data(), size_of_coordinate);
     }
+  }
+
+  std::string_view get_vertex(const std::string& subject, std::size_t element_idx) {
+    auto elm_start = subject.begin() + element_idx * sizeof(element);
+    std::string_view element(&(*elm_start), sizeof(element));
+    return element;
   }
 }

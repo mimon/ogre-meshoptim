@@ -13,4 +13,6 @@ namespace meshoptim
   std::size_t count_elements(const std::string& subject);
 
   void set_vertex(std::string& mesh, std::size_t element_idx, const xyz& vertex);
+
+  std::string_view get_vertex(const std::string& mesh, std::size_t element_idx);
 }
