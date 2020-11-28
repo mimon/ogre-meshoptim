@@ -39,7 +39,7 @@ namespace meshoptim
 
     for (int i = 0; i < element_count; ++i)
     {
-      std::string_view element = get_vertex(subject, i);
+      std::string_view element = get_element(subject, i);
       hashes[i] = hash_fn(element);
     }
 

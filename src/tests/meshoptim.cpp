@@ -45,9 +45,11 @@ SCENARIO("Constructing a mesh data structure") {
       }
     }
 
-    WHEN("Not having duplicated") {
+    WHEN("Not having duplicated elements") {
       set_vertex(themesh, 0, v1);
-      set_vertex(themesh, 1, v2);
+      set_vertex(themesh, 1, v1);
+      set_normal(themesh, 0, v3);
+      set_normal(themesh, 1, v1);
 
       WHEN("Processing it") {
         REQUIRE(meshoptim::count_elements(themesh) == 2);
@@ -59,9 +61,11 @@ SCENARIO("Constructing a mesh data structure") {
       }
     }
 
-    WHEN("Duplicate vertices exists") {
+    WHEN("Duplicate elements exists") {
       set_vertex(themesh, 0, v1);
       set_vertex(themesh, 1, v1);
+      set_normal(themesh, 0, v3);
+      set_normal(themesh, 1, v3);
 
       WHEN("Processing it") {
         std::string newmesh = meshoptim::remove_duplicates(themesh);
