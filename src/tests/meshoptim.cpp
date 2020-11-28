@@ -7,9 +7,9 @@
 
 SCENARIO("Constructing a mesh data structure") {
   GIVEN("A data structure") {
-    meshoptim::vertex v1 { "1.1", "2.2", "3.3" };
-    meshoptim::vertex v2 { "4.4", "5.5", "6.6" };
-    meshoptim::vertex v3 { "10.0", "11.0", "12.0" };
+    meshoptim::xyz v1 { "1.1", "2.2", "3.3" };
+    meshoptim::xyz v2 { "4.4", "5.5", "6.6" };
+    meshoptim::xyz v3 { "10.0", "11.0", "12.0" };
 
     std::string themesh = meshoptim::create_mesh_data(2);
 
@@ -17,9 +17,6 @@ SCENARIO("Constructing a mesh data structure") {
       const size_t count1 = themesh.size();
       set_vertex(themesh, 0, v1);
       const size_t count2 = themesh.size();
-      // set_vertex(themesh, 1, v2);
-
-      // const size_t count3 = themesh.size();
 
       THEN("The length of the data of the mesh does not change") {
         REQUIRE(count1 == count2);

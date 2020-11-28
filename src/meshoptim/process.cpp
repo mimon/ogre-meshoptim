@@ -7,9 +7,9 @@ namespace meshoptim
 {
   namespace sizes {
   constexpr std::size_t size_of_coordinate = 32;
-  constexpr std::size_t x = 32;
-  constexpr std::size_t y = 32;
-  constexpr std::size_t z = 32;
+  constexpr std::size_t x = size_of_coordinate;
+  constexpr std::size_t y = size_of_coordinate;
+  constexpr std::size_t z = size_of_coordinate;
   constexpr std::size_t xyz = x + y + z;
   constexpr std::size_t vertex = xyz;
   constexpr std::size_t normal = xyz;
@@ -28,13 +28,11 @@ namespace meshoptim
     fixed_string z;
   };
 
-  struct element {
-    fixed_xyz vertex;
-  };
+  typedef std::vector<std::size_t> size_t_vector;
 
-  std::vector<std::size_t> hash_elements(const std::string& subject) {
+  size_t_vector hash_elements(const std::string& subject) {
     const std::size_t element_count = count_elements(subject);
-    std::vector<std::size_t> hashes(element_count, 0);
+    size_t_vector hashes(element_count, 0);
     auto hash_fn = std::hash<std::string_view>();
 
     for (int i = 0; i < element_count; ++i)
@@ -47,7 +45,7 @@ namespace meshoptim
   }
 
   std::string remove_duplicates(const std::string& subject) {
-    const std::vector<std::size_t> hashes = hash_elements(subject);
+    const size_t_vector hashes = hash_elements(subject);
     size_t_vector indexes(hashes.size());
     std::iota(indexes.begin(), indexes.end(), 0);
 

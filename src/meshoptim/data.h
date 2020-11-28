@@ -28,23 +28,4 @@ namespace meshoptim
     const char* y;
     const char* z;
   };
-
-  typedef xyz vertex;
-  typedef std::vector<vertex> vertex_vector;
-
-  // struct accessor {
-  //   const std::string& data;
-  //   const std::size_t element_size = 0;
-  //   const std::size_t offset = 0;
-
-  //   void set(std::size_t, );
-  // };
-
-  struct mesh {
-    mesh(std::size_t element_count = 1);
-
-    std::string mesh_data;
-
-    // accessor vertices { mesh_data, sizeof(xyz) };
-  };
 }

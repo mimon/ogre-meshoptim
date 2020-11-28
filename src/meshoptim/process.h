@@ -4,7 +4,6 @@
 
 namespace meshoptim
 {
-  typedef std::vector<std::size_t> size_t_vector;
 
   std::string remove_duplicates(const std::string& subject);
 
