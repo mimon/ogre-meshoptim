@@ -5,6 +5,23 @@
 
 namespace meshoptim
 {
+  namespace sizes {
+  constexpr std::size_t size_of_coordinate = 32;
+  constexpr std::size_t x = 32;
+  constexpr std::size_t y = 32;
+  constexpr std::size_t z = 32;
+  constexpr std::size_t xyz = x + y + z;
+  constexpr std::size_t vertex = xyz;
+  constexpr std::size_t normal = xyz;
+  constexpr std::size_t element_size = vertex + normal;
+  }
+
+  namespace layout {
+  constexpr std::size_t vertex = 0;
+  constexpr std::size_t normal = sizes::vertex - 1;
+  // constexpr std::size_t tangent = sizes::normal - 1;
+  }
+
   struct fixed_xyz {
     fixed_string x;
     fixed_string y;
@@ -46,37 +63,52 @@ namespace meshoptim
     std::string new_mesh = create_mesh_data(new_element_count);
     for(std::size_t new_index = 0; new_index < new_element_count; ++new_index) {
       std::size_t old_index = indexes[new_index];
-      auto old_pos = subject.begin() + old_index * sizeof(element);
-      auto new_pos = new_mesh.begin() + new_index * sizeof(element);
-      new_mesh.replace(new_pos, new_pos + sizeof(element), old_pos, old_pos + sizeof(element));
+      auto old_pos = subject.begin() + old_index * sizes::element_size;
+      auto new_pos = new_mesh.begin() + new_index * sizes::element_size;
+      new_mesh.replace(new_pos, new_pos + sizes::element_size, old_pos, old_pos + sizes::element_size);
     }
 
     return new_mesh;
   }
 
   size_t count_elements(const std::string& subject) {
-    return subject.size() / sizeof(element);
+    return subject.size() / sizes::element_size;
   }
 
   std::string create_mesh_data(std::size_t element_count) {
-    const std::size_t str_size = sizeof(element) * element_count;
+    const std::size_t str_size = sizes::element_size * element_count;
     return std::string(str_size, '0');
   }
 
-  void set_vertex(std::string& mesh, std::size_t element_idx, const xyz& vertex) {
-    const std::array<fixed_string, 3> input { fixed_string(vertex.x), fixed_string(vertex.y), fixed_string(vertex.z) };
-    const auto size_of_coordinate = sizeof(decltype(input)::value_type);
+  void set_xyz(std::string& mesh, std::size_t element_idx, std::size_t element_layout, const xyz& xyz) {
+    const std::array<fixed_string, 3> input { fixed_string(xyz.x), fixed_string(xyz.y), fixed_string(xyz.z) };
     for (int i = 0; i < input.size(); ++i)
     {
-      auto pos = mesh.begin() + element_idx * sizeof(element) + i * size_of_coordinate;
-      auto replace_count = pos + size_of_coordinate;
-      mesh.replace(pos, replace_count, input[i].data(), size_of_coordinate);
+      auto pos = mesh.begin() + element_idx * sizes::element_size + element_layout + i * sizes::size_of_coordinate;
+      auto replace_count = pos + sizes::size_of_coordinate;
+      mesh.replace(pos, replace_count, input[i].data(), sizes::size_of_coordinate);
     }
   }
 
-  std::string_view get_vertex(const std::string& subject, std::size_t element_idx) {
-    auto elm_start = subject.begin() + element_idx * sizeof(element);
-    std::string_view element(&(*elm_start), sizeof(element));
+  std::string_view get_element(const std::string& subject, std::size_t element_idx) {
+    auto elm_start = subject.begin() + element_idx * sizes::element_size;
+    std::string_view element(&(*elm_start), sizes::element_size);
     return element;
+  }
+
+  void set_vertex(std::string& mesh, std::size_t element_idx, const xyz& vertex) {
+    set_xyz(mesh, element_idx, layout::vertex, vertex);
+  }
+
+  std::string_view get_vertex(const std::string& subject, std::size_t element_idx) {
+    return get_element(subject, element_idx).substr(layout::vertex, sizes::vertex);
+  }
+
+  void set_normal(std::string& mesh, std::size_t element_idx, const xyz& normal) {
+    set_xyz(mesh, element_idx, layout::normal, normal);
+  }
+
+  std::string_view get_normal(const std::string& subject, std::size_t element_idx) {
+    return get_element(subject, element_idx).substr(layout::normal, sizes::normal);
   }
 }

@@ -3,10 +3,13 @@
 #include "tests/catch2.hpp"
 #include "meshoptim/process.h"
 
+// Assigning integers without '.' decimals is not supported
+
 SCENARIO("Constructing a mesh data structure") {
   GIVEN("A data structure") {
     meshoptim::vertex v1 { "1.1", "2.2", "3.3" };
     meshoptim::vertex v2 { "4.4", "5.5", "6.6" };
+    meshoptim::vertex v3 { "10.0", "11.0", "12.0" };
 
     std::string themesh = meshoptim::create_mesh_data(2);
 
@@ -26,6 +29,18 @@ SCENARIO("Constructing a mesh data structure") {
         std::string getv1(meshoptim::get_vertex(themesh, 0));
         THEN("Correct vertex data should be returned") {
           REQUIRE(getv1.substr(0, 3) == "1.1");
+        }
+      }
+    }
+
+    WHEN("Assigning normals") {
+      set_vertex(themesh, 0, v1);
+      set_normal(themesh, 0, v3);
+
+      WHEN("Getting normal") {
+        std::string normal(meshoptim::get_normal(themesh, 0));
+        THEN("Correct vertex data should be returned") {
+          REQUIRE(normal.substr(0, 4) == "10.0");
         }
       }
     }
