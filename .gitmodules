@@ -1,0 +1,3 @@
+[submodule "src/lexer"]
+	path = src/lexer
+	url = git@github.com:mimon/lexer.git
