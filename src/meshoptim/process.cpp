@@ -18,7 +18,7 @@ namespace meshoptim
 
   namespace layout {
   constexpr std::size_t vertex = 0;
-  constexpr std::size_t normal = sizes::vertex - 1;
+  constexpr std::size_t normal = sizes::vertex;
   // constexpr std::size_t tangent = sizes::normal - 1;
   }
 
