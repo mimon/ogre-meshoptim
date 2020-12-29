@@ -21,7 +21,6 @@ namespace meshoptim
     }
 
   };
-  typedef std::vector<fixed_string> fixed_string_vector;
 
   struct xyz {
     const char* x;
