@@ -22,12 +22,6 @@ namespace meshoptim
   // constexpr std::size_t tangent = sizes::normal - 1;
   }
 
-  struct fixed_xyz {
-    fixed_string x;
-    fixed_string y;
-    fixed_string z;
-  };
-
   typedef std::vector<std::size_t> size_t_vector;
 
   size_t_vector hash_elements(const std::string& subject) {
@@ -79,12 +73,12 @@ namespace meshoptim
   }
 
   void set_xyz(std::string& mesh, std::size_t element_idx, std::size_t element_layout, const xyz& xyz) {
-    const std::array<fixed_string, 3> input { fixed_string(xyz.x), fixed_string(xyz.y), fixed_string(xyz.z) };
+    const std::array<std::string_view, 3> input { std::string_view(xyz.x), std::string_view(xyz.y), std::string_view(xyz.z) };
     for (int i = 0; i < input.size(); ++i)
     {
-      auto pos = mesh.begin() + element_idx * sizes::element_size + element_layout + i * sizes::size_of_coordinate;
-      auto replace_count = pos + sizes::size_of_coordinate;
-      mesh.replace(pos, replace_count, input[i].data(), sizes::size_of_coordinate);
+      auto begin = mesh.begin() + element_idx * sizes::element_size + element_layout + i * sizes::size_of_coordinate;
+      auto end = begin + std::min(input[i].size(), sizes::size_of_coordinate);
+      mesh.replace(begin, end, input[i]);
     }
   }
 
