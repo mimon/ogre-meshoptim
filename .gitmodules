@@ -1,3 +1,6 @@
 [submodule "src/lexer"]
 	path = src/lexer
 	url = git@github.com:mimon/lexer.git
+[submodule "src/docopt"]
+	path = src/docopt
+	url = git@github.com:docopt/docopt.cpp.git
