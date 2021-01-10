@@ -3,6 +3,7 @@
 #include <iostream>
 #include <string>
 #include <fstream>
+#include <numeric>
 #include <streambuf>
 #include "parser/parser.h"
 #include "meshoptim/process.h"
@@ -28,7 +29,7 @@ std::string open_file(const std::string& file) {
   t.seekg(0, std::ios::end);
   auto file_size = t.tellg();
   if (file_size <= 0) {
-    fmt::print("File {} is empty\n", file);
+    std::cerr << fmt::format("File {} is empty\n", file);
     exit(1);
   }
 
@@ -49,7 +50,7 @@ int main(int argc, const char** argv)
                          "Ogre mesh exporter");
 
     for(auto const& arg : args) {
-        std::cout << arg.first << "   " << arg.second << std::endl;
+        // std::cout << arg.first << "   " << arg.second << std::endl;
     }
 
     const std::string str(open_file(args["<input_file>"].asString()));
@@ -57,12 +58,20 @@ int main(int argc, const char** argv)
     meshoptim::parser::parser_result result = meshoptim::parser::parse(str);
     std::string final(meshoptim::remove_duplicates(result.parsed_mesh));
 
-    std::cout << "Errors: \n";
-    for(const auto& err : result.errors) {
-      std::cout << err << "\n";
+    if (result.errors.size() > 0) {
+      std::cerr << "Errors: \n";
+      for(const auto& err : result.errors) {
+        std::cerr << err << "\n";
+      }
+    } else {
+      meshoptim::string_vector xml_parts(meshoptim::to_xml_parts(result.parsed_mesh));
+
+      const std::string out = std::reduce(xml_parts.begin(), xml_parts.end(), std::string(), [](const std::string& a, const std::string& b) {
+        return a + '\n' + b;
+      });
+      std::cout << out;
     }
 
-    std::cout << "Final mesh \n" << final;
 
     return 0;
 }

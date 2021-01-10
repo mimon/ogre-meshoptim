@@ -2,26 +2,10 @@
 #include "meshoptim/data.h"
 #include <functional>
 #include <numeric>
+#include "fmt/format.h"
 
 namespace meshoptim
 {
-  namespace sizes {
-  constexpr std::size_t size_of_coordinate = 32;
-  constexpr std::size_t x = size_of_coordinate;
-  constexpr std::size_t y = size_of_coordinate;
-  constexpr std::size_t z = size_of_coordinate;
-  constexpr std::size_t xyz = x + y + z;
-  constexpr std::size_t vertex = xyz;
-  constexpr std::size_t normal = xyz;
-  constexpr std::size_t element_size = vertex + normal;
-  }
-
-  namespace layout {
-  constexpr std::size_t vertex = 0;
-  constexpr std::size_t normal = sizes::vertex;
-  // constexpr std::size_t tangent = sizes::normal - 1;
-  }
-
   typedef std::vector<std::size_t> size_t_vector;
 
   size_t_vector hash_elements(const std::string& subject) {
@@ -82,9 +66,9 @@ namespace meshoptim
     }
   }
 
-  std::string_view get_element(const std::string& subject, std::size_t element_idx) {
-    auto elm_start = subject.begin() + element_idx * sizes::element_size;
-    std::string_view element(&(*elm_start), sizes::element_size);
+  std::string_view get_element(const std::string& subject, std::size_t element_idx, std::size_t offset, std::size_t data_size) {
+    auto elm_start = subject.begin() + element_idx * sizes::element_size + offset;
+    std::string_view element(&(*elm_start), data_size);
     return element;
   }
 
@@ -102,5 +86,48 @@ namespace meshoptim
 
   std::string_view get_normal(const std::string& subject, std::size_t element_idx) {
     return get_element(subject, element_idx).substr(layout::normal, sizes::normal);
+  }
+
+  string_vector to_xml_parts(const std::string& mesh) {
+    const std::size_t elm_count = count_elements(mesh);
+
+    string_vector out {
+      "<mesh>",
+      "<submeshes>",
+      "<submesh>",
+      fmt::format("<geometry vertexcount=\"{}\">", elm_count),
+      "<vertexbuffer>"
+    };
+    out.reserve(9 + 2 * elm_count);
+
+    for(int i=0; i<elm_count;++i) {
+      out.push_back("<vertex>");
+      out.push_back(
+        fmt::format(
+          "<position x=\"{}\" y=\"{}\" z=\"{}\" />",
+          get_element(mesh, i, layout::vertex, sizes::x),
+          get_element(mesh, i, layout::vertex + sizes::x, sizes::y),
+          get_element(mesh, i, layout::vertex + sizes::x + sizes::z, sizes::z)
+        )
+      );
+      out.push_back(
+        fmt::format(
+          "<normal x=\"{}\" y=\"{}\" z=\"{}\" />",
+          get_element(mesh, i, layout::normal, sizes::x),
+          get_element(mesh, i, layout::normal + sizes::x, sizes::y),
+          get_element(mesh, i, layout::normal + sizes::x + sizes::z, sizes::z)
+        )
+      );
+      out.push_back("</vertex>");
+    }
+    string_vector tail {
+      "</vertexbuffer>",
+      "</geometry>",
+      "</submesh>",
+      "</submeshes>",
+      "</mesh>"
+    };
+    out.insert(out.end(), tail.begin(), tail.end());
+    return out;
   }
 }

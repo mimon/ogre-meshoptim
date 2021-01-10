@@ -73,5 +73,30 @@ SCENARIO("Constructing a mesh data structure") {
         }
       }
     }
+
+    WHEN("Exporting to XML") {
+      set_vertex(themesh, 0, v1);
+      set_vertex(themesh, 1, v1);
+      set_normal(themesh, 0, v3);
+      set_normal(themesh, 1, v1);
+
+      meshoptim::string_vector xml = meshoptim::to_xml_parts(themesh);
+
+      THEN("It exports valid XML") {
+        // <mesh>
+        //   <submeshes>
+        //     <submesh>
+        //       <geometry>
+          //       <vertexbuffer>
+          //         <vertex></vertex>
+          //       </vertexbuffer>
+        //       </geometry>
+        //     </submesh>
+        //   </submeshes>
+        // </mesh>
+        constexpr int vertices = 2;
+        CHECK(xml.size() == 10 + vertices * (2 + 2));
+      }
+    }
   }
 }
