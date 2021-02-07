@@ -2,6 +2,7 @@
 #include "meshoptim/process.h"
 #include <algorithm>
 #include "fmt/format.h"
+#include <sstream>
 
 namespace meshoptim
 {
@@ -47,6 +48,11 @@ namespace meshoptim
             this->parse_vec3_list(node);
             return this->parse_sequences();
           } break;
+          case token_type::sequence_triangle: {
+            this->consume_token();
+            parse_triangle_list();
+            return this->parse_sequences();
+          }
           default: {
             this->result.errors.push_back(this->unexpected_token("parse_sequences()", node_current->ri));
             return false;
@@ -61,6 +67,8 @@ namespace meshoptim
           type = element_type::position;
         } else if (sequence_node->ri == token_type::sequence_normal) {
           type = element_type::normal;
+        } else if (sequence_node->ri == token_type::sequence_triangle) {
+          type = element_type::triangle;
         } else {
           this->result.errors.push_back("Unexpected node type encountered in parse_vec3_list()");
           return false;
@@ -68,6 +76,7 @@ namespace meshoptim
 
         switch(node_current->ri) {
           case token_type::sequence_normal:
+          case token_type::sequence_triangle:
           case token_type::sequence_position: {
             return true;
           } break;
@@ -76,6 +85,36 @@ namespace meshoptim
               return false;
             }
             return parse_vec3_list(sequence_node);
+          } break;
+          default: {
+            return false;
+          } break;
+        }
+        return false;
+      }
+
+      bool parse_triangle_list() {
+        if (node_current == node_end) {
+          return true;
+        }
+
+        switch(node_current->ri) {
+          case token_type::sequence_normal:
+          case token_type::sequence_triangle:
+          case token_type::sequence_position: {
+            return true;
+          } break;
+          case token_type::datatype_int: {
+            auto v1 = this->consume_token();
+            auto v2 = this->consume_token();
+            auto v3 = this->consume_token();
+            if(v1 == node_end || v2 == node_end || v3 == node_end) {
+              return false;
+            }
+            this->parsed_sequences[element_type::triangle].push_back(v1);
+            this->parsed_sequences[element_type::triangle].push_back(v2);
+            this->parsed_sequences[element_type::triangle].push_back(v3);
+            return parse_triangle_list();
           } break;
           default: {
             return false;
@@ -187,9 +226,17 @@ namespace meshoptim
 
           meshoptim::set_normal(result.parsed_mesh, element_idx, vert);
         }
+
+        result.parsed_index_buffer.resize(p.parsed_sequences[element_type::triangle].size());
+        for (int i = 0; i < p.parsed_sequences[element_type::triangle].size(); ++i)
+        {
+          auto x = p.parsed_sequences[element_type::triangle][i];
+          std::string x_str(input, x->p, x->n);
+          std::istringstream ss (x_str);
+          ss >> result.parsed_index_buffer[i];
+        }
       }
       return result;
     }
-
   }
 }

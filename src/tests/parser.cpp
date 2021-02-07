@@ -47,6 +47,9 @@ SCENARIO("A string read from a file contains some vertices data") {
       "[normal]\n"
       "3.1 3.2 3.3\n"
       "4.1 4.2 4.3\n"
+      "[triangle]\n"
+      "0 1 0\n"
+      "1 1 1\n"
     );
 
     WHEN("Parsing the data") {
@@ -54,9 +57,17 @@ SCENARIO("A string read from a file contains some vertices data") {
 
       THEN("The output should consist of 2 elements with position and normals") {
         // INFO(result.errors[0]);
-        CHECK(meshoptim::count_elements(result.parsed_mesh) == 2);
+        REQUIRE(meshoptim::count_elements(result.parsed_mesh) == 2);
         CHECK(meshoptim::get_vertex(result.parsed_mesh, 1) == "2.1000000000000000000000000000002.2000000000000000000000000000002.300000000000000000000000000000");
         CHECK(meshoptim::get_normal(result.parsed_mesh, 1) == "4.1000000000000000000000000000004.2000000000000000000000000000004.300000000000000000000000000000");
+
+        REQUIRE(result.parsed_index_buffer.size() == 6);
+        CHECK(result.parsed_index_buffer[0] == 0);
+        CHECK(result.parsed_index_buffer[1] == 1);
+        CHECK(result.parsed_index_buffer[2] == 0);
+        CHECK(result.parsed_index_buffer[3] == 1);
+        CHECK(result.parsed_index_buffer[4] == 1);
+        CHECK(result.parsed_index_buffer[5] == 1);
       }
     }
   }
