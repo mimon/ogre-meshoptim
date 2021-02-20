@@ -71,4 +71,22 @@ SCENARIO("A string read from a file contains some vertices data") {
       }
     }
   }
+
+  GIVEN("A large string of data") {
+    std::string text(
+      "[position]\n"
+    );
+
+    std::ostringstream repeated;
+    std::fill_n(std::ostream_iterator<std::string>(repeated), 100000, std::string("1.1 2.2 3.3\n"));
+    text += repeated.str();
+
+    WHEN("Parsing the data") {
+      meshoptim::parser::parser_result result = meshoptim::parser::parse(text);
+
+      THEN("The output should consist of 2 elements with position and normals") {
+        REQUIRE(meshoptim::count_elements(result.parsed_mesh) == 100000);
+      }
+    }
+  }
 }
