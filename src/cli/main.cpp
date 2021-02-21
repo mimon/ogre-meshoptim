@@ -64,7 +64,7 @@ int main(int argc, const char** argv)
         std::cerr << err << "\n";
       }
     } else {
-      meshoptim::string_vector xml_parts(meshoptim::to_xml_parts(result.parsed_mesh));
+      meshoptim::string_vector xml_parts(meshoptim::to_xml_parts(result.parsed_mesh, result.parsed_index_buffer));
 
       const std::string out = std::reduce(xml_parts.begin(), xml_parts.end(), std::string(), [](const std::string& a, const std::string& b) {
         return a + '\n' + b;

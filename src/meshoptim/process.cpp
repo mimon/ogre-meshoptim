@@ -6,7 +6,6 @@
 
 namespace meshoptim
 {
-  typedef std::vector<std::size_t> size_t_vector;
 
   size_t_vector hash_elements(const std::string& subject) {
     const std::size_t element_count = count_elements(subject);
@@ -88,21 +87,29 @@ namespace meshoptim
     return get_element(subject, element_idx).substr(layout::normal, sizes::normal);
   }
 
-  string_vector to_xml_parts(const std::string& mesh) {
+  string_vector to_xml_parts(const std::string& mesh, const size_t_vector& index_buffer) {
     const std::size_t elm_count = count_elements(mesh);
 
     string_vector out {
       "<mesh>",
       "<submeshes>",
-      "<submesh>",
-      fmt::format("<geometry vertexcount=\"{}\">", elm_count),
-      "<vertexbuffer>"
+      "<submesh operationtype=\"triangle_list\" usesharedvertices=\"false\">",
     };
-    out.reserve(9 + 2 * elm_count);
+    // out.reserve(9 + 2 * elm_count);
 
+    string_vector out_tail {
+      "</submesh>",
+      "</submeshes>",
+      "</mesh>"
+    };
+
+    string_vector vertexbuffer {
+      fmt::format("<geometry vertexcount=\"{}\">", elm_count),
+      "<vertexbuffer normals=\"true\" positions=\"true\" tangent_dimensions=\"4\" tangents=\"false\" texture_coords=\"0\">"
+    };
     for(int i=0; i<elm_count;++i) {
-      out.push_back("<vertex>");
-      out.push_back(
+      vertexbuffer.push_back("<vertex>");
+      vertexbuffer.push_back(
         fmt::format(
           "<position x=\"{}\" y=\"{}\" z=\"{}\" />",
           get_element(mesh, i, layout::vertex, sizes::x),
@@ -110,7 +117,7 @@ namespace meshoptim
           get_element(mesh, i, layout::vertex + sizes::x + sizes::z, sizes::z)
         )
       );
-      out.push_back(
+      vertexbuffer.push_back(
         fmt::format(
           "<normal x=\"{}\" y=\"{}\" z=\"{}\" />",
           get_element(mesh, i, layout::normal, sizes::x),
@@ -118,16 +125,39 @@ namespace meshoptim
           get_element(mesh, i, layout::normal + sizes::x + sizes::z, sizes::z)
         )
       );
-      out.push_back("</vertex>");
+      vertexbuffer.push_back("</vertex>");
     }
-    string_vector tail {
+    string_vector vertexbuffer_tail {
       "</vertexbuffer>",
       "</geometry>",
-      "</submesh>",
-      "</submeshes>",
-      "</mesh>"
     };
-    out.insert(out.end(), tail.begin(), tail.end());
+
+
+    string_vector triangles {
+      fmt::format("<faces count=\"{}\">", index_buffer.size() / 3),
+    };
+    for(int i=0; i<index_buffer.size() ; i+= 3) {
+      triangles.push_back(
+        fmt::format(
+          "<face v1=\"{}\" v2=\"{}\" v3=\"{}\" />",
+          index_buffer[i],
+          index_buffer[i + 1],
+          index_buffer[i + 2]
+        )
+      );
+    }
+    string_vector triangles_tail {
+      "</faces>",
+    };
+
+
+    out.insert(out.end(), vertexbuffer.begin(), vertexbuffer.end());
+    out.insert(out.end(), vertexbuffer_tail.begin(), vertexbuffer_tail.end());
+
+    out.insert(out.end(), triangles.begin(), triangles.end());
+    out.insert(out.end(), triangles_tail.begin(), triangles_tail.end());
+
+    out.insert(out.end(), out_tail.begin(), out_tail.end());
     return out;
   }
 }

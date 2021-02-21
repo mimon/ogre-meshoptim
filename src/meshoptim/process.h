@@ -4,6 +4,7 @@
 
 namespace meshoptim
 {
+  typedef std::vector<std::size_t> size_t_vector;
 
   namespace sizes {
   constexpr std::size_t size_of_coordinate = 32;
@@ -38,5 +39,5 @@ namespace meshoptim
 
   std::string_view get_vertex(const std::string& mesh, std::size_t element_idx);
 
-  string_vector to_xml_parts(const std::string& mesh);
+  string_vector to_xml_parts(const std::string& mesh,  const size_t_vector& index_buffer);
 }
