@@ -11,15 +11,18 @@ namespace meshoptim
   constexpr std::size_t x = size_of_coordinate;
   constexpr std::size_t y = size_of_coordinate;
   constexpr std::size_t z = size_of_coordinate;
+  constexpr std::size_t xy = x + y;
   constexpr std::size_t xyz = x + y + z;
+  constexpr std::size_t texture_coord = xy;
   constexpr std::size_t vertex = xyz;
   constexpr std::size_t normal = xyz;
-  constexpr std::size_t element_size = vertex + normal;
+  constexpr std::size_t element_size = vertex + normal + texture_coord;
   }
 
   namespace layout {
   constexpr std::size_t vertex = 0;
   constexpr std::size_t normal = sizes::vertex;
+  constexpr std::size_t texture_coord0 = sizes::vertex + sizes::normal;
   // constexpr std::size_t tangent = sizes::normal - 1;
   }
 
@@ -33,11 +36,15 @@ namespace meshoptim
 
   void set_normal(std::string& mesh, std::size_t element_idx, const xyz& normal);
 
+  void set_texture_coord(std::string& mesh, std::size_t element_idx, const xy& coord);
+
   std::string_view get_normal(const std::string& mesh, std::size_t element_idx);
 
   void set_vertex(std::string& mesh, std::size_t element_idx, const xyz& vertex);
 
   std::string_view get_vertex(const std::string& mesh, std::size_t element_idx);
+
+  std::string_view get_texture_coord(const std::string& mesh, std::size_t element_idx);
 
   string_vector to_xml_parts(const std::string& mesh,  const size_t_vector& index_buffer);
 }

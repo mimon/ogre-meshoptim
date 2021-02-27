@@ -65,10 +65,24 @@ namespace meshoptim
     }
   }
 
+  void set_xy(std::string& mesh, std::size_t element_idx, std::size_t element_layout, const xy& xy) {
+    const std::array<std::string_view, 2> input { std::string_view(xy.x), std::string_view(xy.y) };
+    for (int i = 0; i < input.size(); ++i)
+    {
+      auto begin = mesh.begin() + element_idx * sizes::element_size + element_layout + i * sizes::size_of_coordinate;
+      auto end = begin + std::min(input[i].size(), sizes::size_of_coordinate);
+      mesh.replace(begin, end, input[i]);
+    }
+  }
+
   std::string_view get_element(const std::string& subject, std::size_t element_idx, std::size_t offset, std::size_t data_size) {
     auto elm_start = subject.begin() + element_idx * sizes::element_size + offset;
     std::string_view element(&(*elm_start), data_size);
     return element;
+  }
+
+  void set_texture_coord(std::string& mesh, std::size_t element_idx, const xy& coord) {
+    set_xy(mesh, element_idx, layout::texture_coord0, coord);
   }
 
   void set_vertex(std::string& mesh, std::size_t element_idx, const xyz& vertex) {
@@ -85,6 +99,10 @@ namespace meshoptim
 
   std::string_view get_normal(const std::string& subject, std::size_t element_idx) {
     return get_element(subject, element_idx).substr(layout::normal, sizes::normal);
+  }
+
+  std::string_view get_texture_coord(const std::string& subject, std::size_t element_idx) {
+    return get_element(subject, element_idx).substr(layout::texture_coord0, sizes::texture_coord);
   }
 
   string_vector to_xml_parts(const std::string& mesh, const size_t_vector& index_buffer) {
