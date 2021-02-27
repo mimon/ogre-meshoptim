@@ -11,6 +11,7 @@ namespace meshoptim
         sequence_position,
         sequence_normal,
         sequence_triangle,
+        sequence_texture_coord,
         datatype_float,
         datatype_int,
         whitespace,
@@ -21,6 +22,7 @@ namespace meshoptim
       position,
       normal,
       triangle,
+      texturecoord0,
       number_of_element_types
     };
 
@@ -37,6 +39,7 @@ namespace meshoptim
           this->regexs[token_type::sequence_position] = std::regex("\\[position\\]");
           this->regexs[token_type::sequence_normal] = std::regex("\\[normal\\]");
           this->regexs[token_type::sequence_triangle] = std::regex("\\[triangle\\]");
+          this->regexs[token_type::sequence_texture_coord] = std::regex("\\[texturecoord\\]");
         }
 
       lexer::regex_vector regexs;
@@ -56,13 +59,17 @@ namespace meshoptim
     // Mesh               -> Sequences .
     // Sequences          -> SEQ_POSITION Vec3List Sequences .
     // Sequences          -> SEQ_NORMAL Vec3List Sequences .
+    // Sequences          -> SEQ_TEXTURE_COORD Vec2List Sequences .
     // Sequences          -> SEQ_TRIANGLE TriList Sequences .
     // Sequences          -> .
+    // Vec2List           -> Vec2 Vec2List .
+    // Vec2List           -> .
     // Vec3List           -> Vec3 Vec3List .
     // Vec3List           -> .
     // TriList            -> INT INT INT TriList .
     // TriList            -> .
     // Vec3               -> FLOAT FLOAT FLOAT .
+    // Vec2               -> FLOAT FLOAT .
     parser_result  parse(const std::string& input);
 
   }

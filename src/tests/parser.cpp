@@ -47,6 +47,9 @@ SCENARIO("A string read from a file contains some vertices data") {
       "[normal]\n"
       "3.1 3.2 3.3\n"
       "4.1 4.2 4.3\n"
+      "[texturecoord]\n"
+      "0.0 1.0\n"
+      "1.0 0.0\n"
       "[triangle]\n"
       "0 1 0\n"
       "1 1 1\n"
@@ -60,6 +63,7 @@ SCENARIO("A string read from a file contains some vertices data") {
         REQUIRE(meshoptim::count_elements(result.parsed_mesh) == 2);
         CHECK(meshoptim::get_vertex(result.parsed_mesh, 1) == "2.1000000000000000000000000000002.2000000000000000000000000000002.300000000000000000000000000000");
         CHECK(meshoptim::get_normal(result.parsed_mesh, 1) == "4.1000000000000000000000000000004.2000000000000000000000000000004.300000000000000000000000000000");
+        CHECK(meshoptim::get_texture_coord(result.parsed_mesh, 1) == "1.0000000000000000000000000000000.000000000000000000000000000000");
 
         REQUIRE(result.parsed_index_buffer.size() == 6);
         CHECK(result.parsed_index_buffer[0] == 0);

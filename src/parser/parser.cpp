@@ -24,13 +24,13 @@ namespace meshoptim
         }
 
         switch(node_current->ri) {
-          case meshoptim::parser::token_type::sequence_position:
-          case meshoptim::parser::token_type::sequence_normal: {
-            return this->parse_sequences();
-          } break;
-          default: {
+          case meshoptim::parser::token_type::datatype_float:
+          case meshoptim::parser::token_type::datatype_int: {
             this->result.errors.push_back("Unexpected token in parse_mesh()");
             return false;
+          } break;
+          default: {
+            return this->parse_sequences();
           } break;
         }
         return false;
@@ -43,11 +43,21 @@ namespace meshoptim
             case token_type::sequence_normal:
             case token_type::sequence_position: {
               auto node = this->consume_token();
-              this->parse_vec3_list(node);
+              if (!this->parse_vec3_list(node)) {
+                return false;
+              }
+            } break;
+            case token_type::sequence_texture_coord: {
+              auto node = this->consume_token();
+              if (!this->parse_vec2_list(node)) {
+                return false;
+              }
             } break;
             case token_type::sequence_triangle: {
               this->consume_token();
-              parse_triangle_list();
+              if (!parse_triangle_list()) {
+                return false;
+              }
             } break;
             default: {
               this->result.errors.push_back(this->unexpected_token("parse_sequences()", node_current->ri));
@@ -75,6 +85,7 @@ namespace meshoptim
           switch(node_current->ri) {
             case token_type::sequence_normal:
             case token_type::sequence_triangle:
+            case token_type::sequence_texture_coord:
             case token_type::sequence_position: {
               return true;
             } break;
@@ -92,6 +103,34 @@ namespace meshoptim
         return true;
       }
 
+      bool parse_vec2_list(lexer::node_vector::const_iterator sequence_node) {
+        element_type type {element_type::position};
+        if (sequence_node->ri == token_type::sequence_texture_coord) {
+          type = element_type::texturecoord0;
+        } else {
+          this->result.errors.push_back("Unexpected node type encountered in parse_vec2_list()");
+          return false;
+        }
+
+        while (node_current != node_end) {
+          switch(node_current->ri) {
+            case token_type::datatype_int: {
+              this->result.errors.push_back(this->unexpected_token("parse_vec2_list()", node_current->ri));
+              return false;
+            } break;
+            case token_type::datatype_float: {
+              if(!parse_vec2(type)) {
+                return false;
+              }
+            } break;
+            default: {
+              return true;
+            };
+          }
+        }
+        return true;
+      }
+
       bool parse_triangle_list() {
         if (node_current == node_end) {
           return true;
@@ -101,6 +140,7 @@ namespace meshoptim
           switch(node_current->ri) {
             case token_type::sequence_normal:
             case token_type::sequence_triangle:
+            case token_type::sequence_texture_coord:
             case token_type::sequence_position: {
               return true;
             } break;
@@ -115,12 +155,17 @@ namespace meshoptim
               this->parsed_sequences[element_type::triangle].push_back(v2);
               this->parsed_sequences[element_type::triangle].push_back(v3);
             } break;
+            case token_type::datatype_float: {
+              this->result.errors.push_back(this->unexpected_token("parse_triangle_list()", node_current->ri));
+              return false;
+            } break;
             default: {
+              this->result.errors.push_back(this->unexpected_token("parse_triangle_list()", node_current->ri));
               return false;
             } break;
           }
         }
-        return false;
+        return true;
       }
 
       bool parse_position_sequence() {
@@ -145,6 +190,20 @@ namespace meshoptim
             return false;
           }
         }
+        return true;
+      }
+
+      bool parse_vec2(element_type type) {
+        auto x = this->consume_token();
+        auto y = this->consume_token();
+        if(x->ri != token_type::datatype_float || y->ri != token_type::datatype_float) {
+          return false;
+        }
+        if(x == node_end || y == node_end) {
+          return false;
+        }
+        this->parsed_sequences[type].push_back(x);
+        this->parsed_sequences[type].push_back(y);
         return true;
       }
 
@@ -225,6 +284,20 @@ namespace meshoptim
           };
 
           meshoptim::set_normal(result.parsed_mesh, element_idx, vert);
+        }
+
+        for (int i = 0; i < p.parsed_sequences[element_type::texturecoord0].size(); i += 2)
+        {
+          std::size_t element_idx = i / 2;
+          auto x = p.parsed_sequences[element_type::texturecoord0][i];
+          auto y = p.parsed_sequences[element_type::texturecoord0][i + 1];
+
+          meshoptim::xy coord {
+            std::string(input, x->p, x->n).c_str(),
+            std::string(input, y->p, y->n).c_str(),
+          };
+
+          meshoptim::set_texture_coord(result.parsed_mesh, element_idx, coord);
         }
 
         result.parsed_index_buffer.resize(p.parsed_sequences[element_type::triangle].size());
