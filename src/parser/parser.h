@@ -1,5 +1,5 @@
 #pragma once
-#include "lexer/lexer.h"
+#include "lexer/threaded_lexer.h"
 #include <regex>
 #include <array>
 
@@ -28,22 +28,7 @@ namespace meshoptim
 
     typedef std::vector<std::size_t> size_t_vector;
 
-    class mesh_lexer : public lexer::generic_lexer {
-    public:
-      mesh_lexer() :
-        lexer::generic_lexer(regexs),
-        regexs(token_type::number_of_tokens) {
-          this->regexs[token_type::whitespace] = std::regex("\\s+");
-          this->regexs[token_type::datatype_float] = std::regex("[-+]?(\\d*[.])(\\d*)", std::regex::ECMAScript);
-          this->regexs[token_type::datatype_int] = std::regex("\\d+", std::regex::ECMAScript);
-          this->regexs[token_type::sequence_position] = std::regex("\\[position\\]");
-          this->regexs[token_type::sequence_normal] = std::regex("\\[normal\\]");
-          this->regexs[token_type::sequence_triangle] = std::regex("\\[triangle\\]");
-          this->regexs[token_type::sequence_texture_coord] = std::regex("\\[texturecoord\\]");
-        }
-
-      lexer::regex_vector regexs;
-    };
+    lexer::threaded_lexer create_lexer();
 
     struct parser_result
     {

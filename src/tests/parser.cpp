@@ -9,7 +9,7 @@ SCENARIO("A string read from a file contains some vertices data") {
       "123.123 123.123 123.123\n"
     );
 
-    meshoptim::parser::mesh_lexer tokenizer;
+    lexer::threaded_lexer tokenizer = meshoptim::parser::create_lexer();
     WHEN("Tokenizing the data") {
       tokenizer.tokenize(text);
 

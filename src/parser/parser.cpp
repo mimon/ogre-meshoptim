@@ -12,9 +12,22 @@ namespace meshoptim
     typedef std::vector<lexer::node_vector::const_iterator> const_iterator_vector;
     typedef std::array<const_iterator_vector, element_type::number_of_element_types> sequence_by_element_array;
 
+    lexer::threaded_lexer create_lexer() {
+      lexer::regex_vector regexs(token_type::number_of_tokens);
+      regexs[token_type::whitespace] = std::regex("[ \n\t]+", std::regex::extended);
+      regexs[token_type::datatype_float] = std::regex("[-+]?[0-9]*[.][0-9]*", std::regex::extended | std::regex::optimize);
+      regexs[token_type::datatype_int] = std::regex("[0-9]+", std::regex::extended | std::regex::optimize);
+      regexs[token_type::sequence_position] = std::regex("\\[position]", std::regex::extended | std::regex::optimize);
+      regexs[token_type::sequence_normal] = std::regex("\\[normal]", std::regex::extended | std::regex::optimize);
+      regexs[token_type::sequence_triangle] = std::regex("\\[triangle]", std::regex::extended | std::regex::optimize);
+      regexs[token_type::sequence_texture_coord] = std::regex("\\[texturecoord]", std::regex::extended | std::regex::optimize);
+
+      return lexer::threaded_lexer(regexs);
+    }
+
     class ll_1_parser {
     public:
-      explicit ll_1_parser(const lexer::generic_lexer& tokenizer, bool parse_data = false) : tokenizer(tokenizer), node_current(tokenizer.nodes.begin()), node_end(tokenizer.nodes.end()), parse_data(parse_data) {
+      explicit ll_1_parser(const lexer::threaded_lexer& tokenizer, bool parse_data = false) : tokenizer(tokenizer), node_current(tokenizer.nodes.begin()), node_end(tokenizer.nodes.end()), parse_data(parse_data) {
 
       }
 
@@ -225,7 +238,7 @@ namespace meshoptim
         return fmt::format("Unexpected token index {} in method {}", token, fn_name);
       }
 
-      const lexer::generic_lexer& tokenizer;
+      const lexer::threaded_lexer& tokenizer;
       lexer::node_vector::const_iterator node_current, node_end;
       sequence_by_element_array parsed_sequences;
       parser_result result;
@@ -233,7 +246,7 @@ namespace meshoptim
     };
 
     parser_result  parse(const std::string& input) {
-      mesh_lexer tokenizer;
+      lexer::threaded_lexer tokenizer = create_lexer();
 
       tokenizer.tokenize(input);
 
@@ -249,6 +262,7 @@ namespace meshoptim
       tokenizer.nodes.erase(new_start, tokenizer.nodes.end());
 
       auto p = ll_1_parser(tokenizer);
+
       if(!p.parse_mesh()) {
         result.errors = p.result.errors;
       } else {
