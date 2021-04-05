@@ -1,6 +1,11 @@
 #include "tests/catch2.hpp"
 #include "parser/parser.h"
 #include "meshoptim/process.h"
+#include <iostream>
+#include <sstream>
+#include <algorithm>
+#include <string>
+#include <iterator>
 
 SCENARIO("A string read from a file contains some vertices data") {
   GIVEN("A string of data") {
@@ -44,28 +49,33 @@ SCENARIO("A string read from a file contains some vertices data") {
       "[position]\n"
       "1.1 1.2 1.3\n"
       "2.1 2.2 2.3\n"
+      "2.1 2.2 2.3\n"
       "[normal]\n"
       "3.1 3.2 3.3\n"
+      "4.1 4.2 4.3\n"
       "4.1 4.2 4.3\n"
       "[texturecoord]\n"
       "0.0 1.0\n"
       "1.0 0.0\n"
+      "1.0 0.0\n"
       "[triangle]\n"
       "0 1 0\n"
+      "1 1 1\n"
       "1 1 1\n"
     );
 
     WHEN("Parsing the data") {
       meshoptim::parser::parser_result result = meshoptim::parser::parse(text);
 
-      THEN("The output should consist of 2 elements with position and normals") {
+      THEN("The output should consist of 3 elements with position and normals") {
         // INFO(result.errors[0]);
-        REQUIRE(meshoptim::count_elements(result.parsed_mesh) == 2);
+        REQUIRE(meshoptim::count_elements(result.parsed_mesh) == 3);
         CHECK(meshoptim::get_vertex(result.parsed_mesh, 1) == "2.1000000000000000000000000000002.2000000000000000000000000000002.300000000000000000000000000000");
         CHECK(meshoptim::get_normal(result.parsed_mesh, 1) == "4.1000000000000000000000000000004.2000000000000000000000000000004.300000000000000000000000000000");
         CHECK(meshoptim::get_texture_coord(result.parsed_mesh, 1) == "1.0000000000000000000000000000000.000000000000000000000000000000");
+        CHECK(meshoptim::get_texture_coord(result.parsed_mesh, 2) == "1.0000000000000000000000000000000.000000000000000000000000000000");
 
-        REQUIRE(result.parsed_index_buffer.size() == 6);
+        REQUIRE(result.parsed_index_buffer.size() == 9);
         CHECK(result.parsed_index_buffer[0] == 0);
         CHECK(result.parsed_index_buffer[1] == 1);
         CHECK(result.parsed_index_buffer[2] == 0);
