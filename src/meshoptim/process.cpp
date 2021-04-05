@@ -109,21 +109,17 @@ namespace meshoptim
     const std::size_t elm_count = count_elements(mesh);
 
     string_vector out {
-      "<mesh>",
-      "<submeshes>",
       "<submesh operationtype=\"triangle_list\" usesharedvertices=\"false\">",
     };
     // out.reserve(9 + 2 * elm_count);
 
     string_vector out_tail {
       "</submesh>",
-      "</submeshes>",
-      "</mesh>"
     };
 
     string_vector vertexbuffer {
       fmt::format("<geometry vertexcount=\"{}\">", elm_count),
-      "<vertexbuffer normals=\"true\" positions=\"true\" tangent_dimensions=\"4\" tangents=\"false\" texture_coords=\"0\">"
+      "<vertexbuffer normals=\"true\" positions=\"true\" tangent_dimensions=\"4\" tangents=\"false\" texture_coords=\"1\">"
     };
     for(int i=0; i<elm_count;++i) {
       vertexbuffer.push_back("<vertex>");
@@ -141,6 +137,13 @@ namespace meshoptim
           get_element(mesh, i, layout::normal, sizes::x),
           get_element(mesh, i, layout::normal + sizes::x, sizes::y),
           get_element(mesh, i, layout::normal + sizes::x + sizes::z, sizes::z)
+        )
+      );
+      vertexbuffer.push_back(
+        fmt::format(
+          "<texcoord u=\"{}\" v=\"{}\" />",
+          get_element(mesh, i, layout::texture_coord0, sizes::x),
+          get_element(mesh, i, layout::texture_coord0 + sizes::x, sizes::y)
         )
       );
       vertexbuffer.push_back("</vertex>");

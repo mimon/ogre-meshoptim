@@ -12,7 +12,7 @@ static const char USAGE[] =
 R"(Mesh exporter and optimizer for Ogre 2.
 
     Usage:
-      ogre-meshoptim [--output-file=path] <input_file>
+      ogre-meshoptim [--output-file=path] <input_file>...
       ogre-meshoptim (-h | --help)
       ogre-meshoptim --version
 
@@ -49,29 +49,38 @@ int main(int argc, const char** argv)
                          true,
                          "Ogre mesh exporter");
 
-    for(auto const& arg : args) {
-        // std::cout << arg.first << "   " << arg.second << std::endl;
-    }
+    meshoptim::string_vector xml_parts {
+      "<mesh>",
+      "<submeshes>",
+      "</submeshes>",
+      "</mesh>"
+    };
+    for(auto const& input_file : args["<input_file>"].asStringList()) {
+      const std::string str(open_file(input_file));
 
-    const std::string str(open_file(args["<input_file>"].asString()));
+      meshoptim::parser::parser_result result = meshoptim::parser::parse(str);
+      std::string final(meshoptim::remove_duplicates(result.parsed_mesh));
 
-    meshoptim::parser::parser_result result = meshoptim::parser::parse(str);
-    std::string final(meshoptim::remove_duplicates(result.parsed_mesh));
-
-    if (result.errors.size() > 0) {
-      std::cerr << "Errors: \n";
-      for(const auto& err : result.errors) {
-        std::cerr << err << "\n";
+      if (result.errors.size() > 0) {
+        std::cerr << "Errors: \n";
+        for(const auto& err : result.errors) {
+          std::cerr << err << "\n";
+        }
+      } else {
+        auto submesh = meshoptim::to_xml_parts(result.parsed_mesh, result.parsed_index_buffer);
+        xml_parts.insert(xml_parts.end() - 2, submesh.begin(), submesh.end());
       }
-    } else {
-      meshoptim::string_vector xml_parts(meshoptim::to_xml_parts(result.parsed_mesh, result.parsed_index_buffer));
-
-      const std::string out = std::reduce(xml_parts.begin(), xml_parts.end(), std::string(), [](const std::string& a, const std::string& b) {
-        return a + '\n' + b;
-      });
-      std::cout << out;
     }
 
+    std::string out;
+    out.reserve(xml_parts.size() * 256);
+    for(const std::string& s : xml_parts) {
+      out += '\n' + s;
+    }
+    // const std::string out = std::reduce(xml_parts.begin(), xml_parts.end(), start, [](const std::string& a, const std::string& b) {
+    //   return a + '\n' + b;
+    // });
+    std::cout << out;
 
     return 0;
 }
